@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>EnKash · Product–Engineering Pipeline</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700&family=DM+Sans:wght@300;400;500&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<style>
+:root{--bg:#0B0E18;--bg-card:#10131F;--bg-raised:#161929;--bg-hover:#1C2035;--border:rgba(255,255,255,0.07);--border-hi:rgba(255,255,255,0.13);--teal:#00D4AA;--tdim:rgba(0,212,170,0.10);--blue:#4B9FFF;--amber:#F5A623;--red:#FF6B6B;--purple:#9B8FFF;--green:#4CAF7D;--text:#EEF0F8;--muted:#8892A8;--dim:#3D4557;--fh:'Syne',sans-serif;--fb:'DM Sans',sans-serif;--fm:'DM Mono',monospace;--r:10px;--rl:16px;}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--text);font-family:var(--fb);font-size:14px;line-height:1.6;min-height:100vh;}
+a{color:var(--blue);text-decoration:none;}
+.wrap{max-width:1340px;margin:0 auto;padding:1.75rem 1.5rem 4rem;}
+
+/* SETUP SCREEN */
+.setup{display:none;min-height:100vh;align-items:center;justify-content:center;padding:2rem;}
+.setup.show{display:flex;}
+.setup-card{background:var(--bg-card);border:1px solid var(--border-hi);border-radius:var(--rl);padding:2.5rem;max-width:520px;width:100%;}
+.setup-logo{width:44px;height:44px;border-radius:12px;background:var(--tdim);border:1px solid rgba(0,212,170,0.2);display:flex;align-items:center;justify-content:center;margin-bottom:1.25rem;}
+.setup-logo svg{width:22px;height:22px;stroke:var(--teal);}
+.setup-card h1{font-family:var(--fh);font-size:20px;font-weight:600;margin-bottom:.4rem;}
+.setup-card p{font-size:13px;color:var(--muted);margin-bottom:1.5rem;line-height:1.7;}
+.field{margin-bottom:12px;}
+.field label{display:block;font-size:10px;font-family:var(--fm);color:var(--muted);letter-spacing:.6px;text-transform:uppercase;margin-bottom:5px;}
+.field input{width:100%;background:var(--bg-raised);border:1px solid var(--border);border-radius:var(--r);padding:9px 11px;color:var(--text);font-size:13px;font-family:var(--fm);outline:none;transition:border-color .15s;}
+.field input:focus{border-color:var(--teal);}
+.setup-note{font-size:11px;color:var(--dim);margin-top:12px;line-height:1.7;}
+.setup-note a{color:var(--blue);}
+.btn-setup{width:100%;margin-top:16px;padding:11px;background:var(--teal);color:#0B0E18;border:none;border-radius:var(--r);font-size:14px;font-weight:500;font-family:var(--fb);cursor:pointer;transition:opacity .15s;}
+.btn-setup:hover{opacity:.85;}
+
+/* MAIN DASHBOARD */
+.dash{display:none;}
+.dash.show{display:block;}
+
+/* HEADER */
+.header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:1.75rem;padding-bottom:1.25rem;border-bottom:1px solid var(--border);gap:12px;flex-wrap:wrap;}
+.hbrand{display:flex;align-items:center;gap:12px;}
+.hlogo{width:36px;height:36px;border-radius:10px;background:var(--tdim);border:1px solid rgba(0,212,170,0.2);display:flex;align-items:center;justify-content:center;}
+.hlogo svg{width:18px;height:18px;stroke:var(--teal);}
+.hbrand h1{font-family:var(--fh);font-size:17px;font-weight:600;letter-spacing:-.3px;}
+.hbrand p{font-size:11px;color:var(--muted);font-family:var(--fm);margin-top:1px;}
+.hright{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+.live{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--muted);font-family:var(--fm);}
+.ldot{width:6px;height:6px;border-radius:50%;background:var(--teal);box-shadow:0 0 5px var(--teal);animation:pd 2s ease-in-out infinite;}
+@keyframes pd{0%,100%{opacity:1}50%{opacity:.3}}
+.btn{display:inline-flex;align-items:center;gap:5px;padding:6px 12px;border-radius:var(--r);border:1px solid var(--border-hi);background:var(--bg-raised);color:var(--muted);font-size:11px;font-family:var(--fb);cursor:pointer;transition:all .15s;white-space:nowrap;}
+.btn:hover{border-color:var(--teal);color:var(--teal);background:rgba(0,212,170,.05);}
+.btn svg{width:13px;height:13px;stroke:currentColor;flex-shrink:0;}
+.btn.spin svg{animation:sp .7s linear infinite;}
+@keyframes sp{to{transform:rotate(360deg)}}
+.btn-danger{border-color:rgba(255,107,107,.3);color:var(--red);}
+.btn-danger:hover{border-color:var(--red);background:rgba(255,107,107,.08);color:var(--red);}
+
+/* NOTICE */
+.notice{background:rgba(75,159,255,.07);border:1px solid rgba(75,159,255,.18);border-radius:var(--r);padding:9px 14px;font-size:11px;font-family:var(--fm);color:var(--blue);margin-bottom:1.5rem;line-height:1.6;display:none;}
+
+/* RM CARDS */
+.rm-sec{margin-bottom:1.5rem;}
+.sec-lbl{font-size:10px;color:var(--muted);font-family:var(--fm);letter-spacing:.8px;text-transform:uppercase;margin-bottom:8px;}
+.rm-row{display:flex;gap:8px;flex-wrap:wrap;}
+.rmc{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--r);padding:.6rem .9rem;cursor:pointer;transition:all .15s;flex-shrink:0;min-width:68px;}
+.rmc:hover,.rmc.on{border-color:var(--rc,var(--teal));}
+.rmc.on{background:rgba(var(--rgb,0,212,170),.07);}
+.rmc-n{font-family:var(--fh);font-size:22px;font-weight:700;line-height:1;letter-spacing:-.5px;color:var(--rc,var(--teal));}
+.rmc-l{font-size:10px;color:var(--muted);font-family:var(--fm);margin-top:3px;}
+.rmc-g{font-size:9px;color:var(--red);margin-top:1px;}
+
+/* SUMMARY CARDS */
+.sc-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(115px,1fr));gap:10px;margin-bottom:1.5rem;}
+.sc{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--rl);padding:.85rem 1rem;position:relative;overflow:hidden;}
+.sc::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;border-radius:var(--rl) var(--rl) 0 0;}
+.sc.t::before{background:var(--teal)}.sc.b::before{background:var(--blue)}.sc.g::before{background:var(--green)}.sc.r::before{background:var(--red)}.sc.a::before{background:var(--amber)}.sc.p::before{background:var(--purple)}
+.sc-l{font-size:10px;color:var(--muted);font-family:var(--fm);letter-spacing:.5px;text-transform:uppercase;margin-bottom:6px;}
+.sc-v{font-family:var(--fh);font-size:26px;font-weight:700;line-height:1;letter-spacing:-1px;}
+.sc.t .sc-v{color:var(--teal)}.sc.b .sc-v{color:var(--blue)}.sc.g .sc-v{color:var(--green)}.sc.r .sc-v{color:var(--red)}.sc.a .sc-v{color:var(--amber)}.sc.p .sc-v{color:var(--purple)}
+.sc-s{font-size:10px;color:var(--muted);margin-top:4px;}
+
+/* FILTERS */
+.fbar{display:flex;align-items:center;gap:8px;margin-bottom:1.25rem;flex-wrap:wrap;}
+.fl{font-size:11px;color:var(--muted);font-family:var(--fm);}
+.fbar select{background:var(--bg-raised);border:1px solid var(--border);border-radius:var(--r);padding:6px 10px;color:var(--muted);font-size:11px;font-family:var(--fm);cursor:pointer;outline:none;transition:border-color .15s;}
+.fbar select:focus{border-color:var(--teal);}
+.fbar select option{background:var(--bg-raised);}
+.fsep{width:1px;height:18px;background:var(--border);margin:0 2px;}
+.sw{flex:1;min-width:160px;max-width:240px;position:relative;}
+.sw input{width:100%;background:var(--bg-raised);border:1px solid var(--border);border-radius:var(--r);padding:6px 10px 6px 28px;color:var(--text);font-size:12px;outline:none;transition:border-color .15s;font-family:var(--fb);}
+.sw input:focus{border-color:var(--teal);}
+.sw svg{position:absolute;left:8px;top:50%;transform:translateY(-50%);width:13px;height:13px;stroke:var(--muted);pointer-events:none;}
+.gtog{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--muted);cursor:pointer;padding:6px 10px;border-radius:var(--r);border:1px solid var(--border);background:var(--bg-raised);white-space:nowrap;transition:all .15s;}
+.gtog.on{border-color:var(--red);color:var(--red);background:rgba(255,107,107,.08);}
+.gdot{width:6px;height:6px;border-radius:50%;background:var(--red);flex-shrink:0;}
+.rc{font-size:11px;color:var(--dim);font-family:var(--fm);margin-left:auto;}
+
+/* TABLE */
+.tw{overflow-x:auto;}
+.tbl{width:100%;border-collapse:collapse;}
+.tbl thead tr{border-bottom:1px solid var(--border-hi);}
+.tbl th{font-size:10px;color:var(--muted);font-family:var(--fm);letter-spacing:.5px;text-transform:uppercase;padding:0 10px 10px;text-align:left;font-weight:500;white-space:nowrap;}
+.tbl th:first-child{padding-left:0;}
+.tbl tbody tr{border-bottom:1px solid var(--border);transition:background .12s;}
+.tbl tbody tr:hover{background:var(--bg-hover);}
+.tbl tbody tr.gap{border-left:2px solid var(--red);}
+.tbl td{padding:10px;vertical-align:middle;}
+.tbl td:first-child{padding-left:0;}
+.iname{font-size:13px;font-weight:500;color:var(--text);line-height:1.3;cursor:pointer;}
+.iname:hover{color:var(--blue);}
+.ikey{font-size:10px;font-family:var(--fm);color:var(--dim);margin-top:2px;}
+
+/* BADGES */
+.badge{display:inline-block;font-size:10px;font-family:var(--fm);padding:2px 8px;border-radius:10px;font-weight:500;white-space:nowrap;border:1px solid transparent;}
+.rm-Now{background:rgba(75,159,255,.15);color:#4B9FFF;border-color:rgba(75,159,255,.25);}
+.rm-Next{background:rgba(245,166,35,.15);color:#F5A623;border-color:rgba(245,166,35,.25);}
+.rm-Later{background:rgba(75,85,99,.25);color:#9CA3AF;border-color:rgba(75,85,99,.35);}
+.rm-Released{background:rgba(76,175,125,.15);color:#4CAF7D;border-color:rgba(76,175,125,.25);}
+.rm-Blocked{background:rgba(255,107,107,.15);color:#FF6B6B;border-color:rgba(255,107,107,.25);}
+.rm-OnHold{background:rgba(245,166,35,.12);color:#D97706;border-color:rgba(245,166,35,.2);}
+.rm-Ongoing{background:rgba(155,143,255,.15);color:#9B8FFF;border-color:rgba(155,143,255,.25);}
+.rm-InSprint{background:rgba(0,212,170,.15);color:#00D4AA;border-color:rgba(0,212,170,.25);}
+.rm-Wontdo{background:rgba(75,85,99,.15);color:#6B7280;border-color:rgba(75,85,99,.2);}
+.pb-Expense{background:rgba(75,159,255,.12);color:#4B9FFF;}
+.pb-Cards{background:rgba(245,166,35,.12);color:#F5A623;}
+.pb-Platform{background:rgba(155,143,255,.12);color:#9B8FFF;}
+.pb-Wallet{background:rgba(76,175,125,.12);color:#4CAF7D;}
+.pb-Vouchers{background:rgba(0,212,170,.12);color:#00D4AA;}
+.pb-UPIOnPPI{background:rgba(255,107,107,.12);color:#FF6B6B;}
+.pb-CoBranded{background:rgba(245,166,35,.10);color:#D97706;}
+
+/* PIPELINE */
+.track{display:flex;align-items:flex-start;}
+.ts{display:flex;flex-direction:column;align-items:center;gap:3px;}
+.td{width:9px;height:9px;border-radius:50%;flex-shrink:0;}
+.td.done{background:var(--teal)}.td.act{background:var(--blue)}.td.wait{background:var(--bg-raised);border:1px solid var(--border-hi)}.td.prod{background:var(--green)}.td.gap{background:var(--red);animation:pd 1.5s ease-in-out infinite;}
+.tl{font-size:9px;color:var(--dim);font-family:var(--fm);}
+.tline{flex:1;height:1px;background:var(--border);min-width:8px;margin:0 1px;margin-bottom:12px;}
+
+/* EM CELL */
+.emk{font-family:var(--fm);font-size:11px;color:var(--blue);}
+.ems{font-size:11px;margin-top:1px;}
+.noem{font-size:11px;color:var(--red);font-family:var(--fm);}
+.mc{font-size:9px;color:var(--dim);font-family:var(--fm);margin-top:1px;}
+
+/* INLINE EDIT */
+.ie{background:transparent;border:1px solid transparent;border-radius:6px;padding:2px 16px 2px 5px;font-size:11px;font-family:var(--fm);color:var(--muted);cursor:pointer;outline:none;transition:all .15s;appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='8' viewBox='0 0 24 24' fill='none' stroke='%236B7280' stroke-width='2'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 3px center;}
+.ie:hover,.ie:focus{border-color:var(--border-hi);background-color:var(--bg-raised);color:var(--text);}
+.ie option{background:var(--bg-raised);color:var(--text);}
+.it{background:transparent;border:1px solid transparent;border-radius:6px;padding:2px 5px;font-size:11px;font-family:var(--fm);color:var(--muted);outline:none;width:95px;transition:all .15s;}
+.it:hover,.it:focus{border-color:var(--border-hi);background:var(--bg-raised);color:var(--text);}
+.it::placeholder{color:var(--dim);}
+
+/* FOOTER */
+.footer{margin-top:2rem;padding-top:1.25rem;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;}
+.footer p{font-family:var(--fm);font-size:11px;color:var(--dim);}
+.erow td{padding:2rem;text-align:center;color:var(--muted);font-size:13px;}
+.shim{background:linear-gradient(90deg,var(--bg-raised) 25%,var(--bg-card) 50%,var(--bg-raised) 75%);background-size:200% 100%;animation:sh 1.4s infinite;border-radius:4px;height:12px;display:inline-block;}
+@keyframes sh{to{background-position:-200% 0}}
+@media(max-width:900px){.tbl th:nth-child(4),.tbl td:nth-child(4){display:none;}}
+@media(max-width:700px){.tbl th:nth-child(3),.tbl td:nth-child(3),.tbl th:nth-child(5),.tbl td:nth-child(5){display:none;}}
+</style>
+</head>
+<body>
+
+<!-- SETUP SCREEN -->
+<div class="setup" id="setup">
+  <div class="setup-card">
+    <div class="setup-logo">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3h7v7H3zM14 3h7v7h-7zM3 14h7v7H3zM14 14h7v7h-7z"/></svg>
+    </div>
+    <h1>EnKash Pipeline Dashboard</h1>
+    <p>Enter your Jira credentials once. They're saved in your browser and never leave your device.</p>
+    <div class="field"><label>Jira base URL</label><input id="s-url" type="text" value="https://enkash.atlassian.net" placeholder="https://yourorg.atlassian.net"/></div>
+    <div class="field"><label>Email</label><input id="s-email" type="email" placeholder="you@enkash.com"/></div>
+    <div class="field"><label>API token</label><input id="s-token" type="password" placeholder="Paste your Jira API token"/></div>
+    <div class="field"><label>CAR project key</label><input id="s-car" type="text" value="CAR"/></div>
+    <div class="field"><label>EM project key</label><input id="s-em" type="text" value="EM"/></div>
+    <div class="setup-note">
+      Generate a token at <a href="https://id.atlassian.com/manage-profile/security/api-tokens" target="_blank">id.atlassian.com → API tokens</a>.
+      Your credentials are stored only in this browser's localStorage — they're never sent anywhere except directly to your Jira instance.
+    </div>
+    <button class="btn-setup" onclick="saveSetup()">Connect to Jira →</button>
+  </div>
+</div>
+
+<!-- MAIN DASHBOARD -->
+<div class="dash" id="dash">
+<div class="wrap">
+  <header class="header">
+    <div class="hbrand">
+      <div class="hlogo"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3h7v7H3zM14 3h7v7h-7zM3 14h7v7H3zM14 14h7v7h-7z"/></svg></div>
+      <div><h1>Product–Engineering Pipeline</h1><p id="hsub">Cards &amp; Expense · EM Engineering · enkash.atlassian.net</p></div>
+    </div>
+    <div class="hright">
+      <div class="live"><div class="ldot" id="ldot"></div><span id="llbl">Loading…</span></div>
+      <button class="btn" onclick="loadAll()" id="rbtn"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>Refresh</button>
+      <button class="btn" onclick="exportCSV()"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>Export CSV</button>
+      <button class="btn btn-danger" onclick="logout()"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>Change account</button>
+    </div>
+  </header>
+
+  <div class="notice" id="notice"></div>
+
+  <div class="rm-sec">
+    <p class="sec-lbl">By roadmap — click to filter</p>
+    <div class="rm-row" id="rm-row"><div class="rmc"><p class="rmc-n"><span class="shim" style="width:24px"></span></p><p class="rmc-l">Loading</p></div></div>
+  </div>
+
+  <div class="sc-row" id="sc-row">
+    <div class="sc t"><p class="sc-l">Total ideas</p><p class="sc-v">—</p><p class="sc-s">pipeline</p></div>
+    <div class="sc b"><p class="sc-l">In engineering</p><p class="sc-v">—</p><p class="sc-s">EM open</p></div>
+    <div class="sc g"><p class="sc-l">Delivered</p><p class="sc-v">—</p><p class="sc-s">in production</p></div>
+    <div class="sc r"><p class="sc-l">No EM story</p><p class="sc-v">—</p><p class="sc-s">gap</p></div>
+    <div class="sc a"><p class="sc-l">Customers</p><p class="sc-v">—</p><p class="sc-s">tracked</p></div>
+    <div class="sc p"><p class="sc-l">Blocked</p><p class="sc-v">—</p><p class="sc-s">attention needed</p></div>
+  </div>
+
+  <div class="fbar">
+    <div class="sw">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      <input id="fs" type="text" placeholder="Search ideas, keys…" oninput="renderTable()"/>
+    </div>
+    <div class="fsep"></div>
+    <span class="fl">Roadmap</span>
+    <select id="frm" onchange="syncRm(this.value);renderTable()">
+      <option value="">All</option>
+      <option>Now</option><option>Next</option><option>In Sprint</option>
+      <option>Ongoing</option><option>Later</option><option>Blocked</option>
+      <option>On Hold</option><option>Released</option><option>Won't do</option>
+    </select>
+    <span class="fl">Product</span>
+    <select id="fpr" onchange="renderTable()">
+      <option value="">All</option>
+      <option>Expense</option><option>Cards</option><option>Platform</option>
+      <option>Wallet</option><option>Vouchers</option><option>UPI On PPI</option><option>CoBranded</option>
+    </select>
+    <span class="fl">Customer</span>
+    <select id="fcu" onchange="renderTable()"><option value="">All</option></select>
+    <span class="fl">Stage</span>
+    <select id="fst" onchange="renderTable()">
+      <option value="">All</option>
+      <option value="delivered">Delivered</option>
+      <option value="in-engineering">In engineering</option>
+      <option value="car-only">No EM story</option>
+    </select>
+    <button class="gtog" id="gtog" onclick="toggleGap()"><span class="gdot"></span>Gaps only</button>
+    <span class="rc" id="rcount"></span>
+  </div>
+
+  <div class="tw">
+    <table class="tbl">
+      <thead><tr>
+        <th style="min-width:220px">Idea</th><th>Roadmap</th><th>Product</th>
+        <th>Customer</th><th style="min-width:160px">Pipeline</th>
+        <th>CAR status</th><th style="min-width:130px">EM story</th>
+      </tr></thead>
+      <tbody id="tbody"><tr class="erow"><td colspan="7"><span class="shim" style="width:220px"></span></td></tr></tbody>
+    </table>
+  </div>
+
+  <footer class="footer">
+    <p>enkash · cards &amp; expense product pipeline</p>
+    <p id="fts">Refreshes every 5 min</p>
+  </footer>
+</div>
+</div>
+
+<script>
+/* ── STATE ── */
+let allRows=[], gapOnly=false, activeRm='';
+
+/* ── ROADMAP META ── */
+const RM={
+  'Now':{c:'#4B9FFF',rgb:'75,159,255'},'Next':{c:'#F5A623',rgb:'245,166,35'},
+  'Later':{c:'#9CA3AF',rgb:'156,163,175'},"Won't do":{c:'#6B7280',rgb:'107,114,128'},
+  'Released':{c:'#4CAF7D',rgb:'76,175,125'},'Blocked':{c:'#FF6B6B',rgb:'255,107,107'},
+  'On Hold':{c:'#D97706',rgb:'217,119,6'},'Ongoing':{c:'#9B8FFF',rgb:'155,143,255'},
+  'In Sprint':{c:'#00D4AA',rgb:'0,212,170'},
+};
+const RM_ORD=['Now','In Sprint','Ongoing','Next','Later','Blocked','On Hold','Released',"Won't do"];
+const STOP=new Set(['the','a','an','and','or','for','to','of','in','on','at','is','be','as','by','with','from','into','via','api','integration','feature','changes','update','new','using','use']);
+
+/* ── CONFIG ── */
+function getCfg(){return JSON.parse(localStorage.getItem('epcfg')||'null');}
+function saveCfg(o){localStorage.setItem('epcfg',JSON.stringify(o));}
+
+/* ── SETUP ── */
+function saveSetup(){
+  const cfg={
+    url:(document.getElementById('s-url').value||'').trim().replace(/\/+$/,''),
+    email:(document.getElementById('s-email').value||'').trim(),
+    token:(document.getElementById('s-token').value||'').trim(),
+    car:(document.getElementById('s-car').value||'CAR').trim(),
+    em:(document.getElementById('s-em').value||'EM').trim(),
+  };
+  if(!cfg.email||!cfg.token){alert('Please enter your email and API token.');return;}
+  saveCfg(cfg);
+  document.getElementById('setup').classList.remove('show');
+  document.getElementById('dash').classList.add('show');
+  loadAll();
+}
+function logout(){
+  localStorage.removeItem('epcfg');
+  document.getElementById('dash').classList.remove('show');
+  document.getElementById('setup').classList.add('show');
+}
+
+/* ── JIRA API (called directly from browser — Atlassian Cloud supports CORS) ── */
+async function jiraPage(cfg,jql,start){
+  const auth=btoa(cfg.email+':'+cfg.token);
+  const p=new URLSearchParams({jql,maxResults:100,startAt:start||0,fields:'summary,status,priority,assignee,labels,created,updated,issuetype'});
+  const r=await fetch(cfg.url+'/rest/api/3/search?'+p,{headers:{Authorization:'Basic '+auth,Accept:'application/json'}});
+  if(!r.ok) throw new Error('Jira '+r.status+': '+r.statusText);
+  return r.json();
+}
+async function fetchAll(cfg,jql){
+  const all=[];let start=0,total=1;
+  while(start<total&&start<500){
+    const d=await jiraPage(cfg,jql,start);
+    total=d.total||0;const b=d.issues||[];
+    all.push(...b);start+=b.length;
+    if(b.length<100) break;
+  }
+  return all;
+}
+
+/* ── LOAD ── */
+async function loadAll(){
+  const cfg=getCfg(); if(!cfg) return;
+  const btn=document.getElementById('rbtn');
+  btn.classList.add('spin');
+  setLive(false,'Loading…');
+  document.getElementById('notice').style.display='none';
+  try{
+    const [car,em]=await Promise.all([
+      fetchAll(cfg,`project="${cfg.car}" AND status != "Parking lot" ORDER BY updated DESC`),
+      fetchAll(cfg,`project="${cfg.em}" ORDER BY updated DESC`)
+    ]);
+    setLive(true,'Live');
+    renderAll(buildRows(car.map(slim),em.map(slim)));
+    document.getElementById('fts').textContent='Updated '+new Date().toLocaleTimeString()+'  ·  Auto-refreshes every 5 min';
+  }catch(e){
+    setLive(false,'Error');
+    const n=document.getElementById('notice');
+    n.textContent='Could not connect to Jira: '+e.message+'. Check your credentials or network.';
+    n.style.display='block';
+  }
+  btn.classList.remove('spin');
+}
+
+function slim(i){return{key:i.key,summary:i.fields.summary,status:i.fields.status?.name,labels:i.fields.labels||[],updated:i.fields.updated};}
+
+/* ── INFERENCE ── */
+function tok(s){return new Set((s||'').toLowerCase().replace(/[^a-z0-9\s]/g,' ').split(/\s+/).filter(w=>w.length>2&&!STOP.has(w)));}
+function jac(a,b){if(!a.size||!b.size)return 0;const i=[...a].filter(x=>b.has(x)).length;return i/(a.size+b.size-i);}
+function infer(name,stored){
+  const out=Object.assign({roadmap:'Later',product:'Expense',customer:'Internal'},stored||{});
+  const s=(name||'').toLowerCase();
+  if(!stored?.customer){
+    if(/ril|reliance/.test(s)) out.customer='RIL';
+    else if(/pine.?lab/.test(s)) out.customer='Pine Labs';
+    else if(/solugenix/.test(s)) out.customer='Solugenix';
+    else if(/agx/.test(s)) out.customer='AGX Retail';
+    else if(/sleep.?comp/.test(s)) out.customer='Sleep Company';
+    else if(/au.?bank|aura/.test(s)) out.customer='AU Bank';
+  }
+  if(!stored?.product){
+    if(/voucher|gift/.test(s)) out.product='Vouchers';
+    else if(/wallet|closed.loop/.test(s)) out.product='Wallet';
+    else if(/upi.on.ppi|ppi/.test(s)) out.product='UPI On PPI';
+    else if(/cobrand/.test(s)) out.product='CoBranded';
+    else if(/card|pin|gpr|prepaid|ecr|limit.breach/.test(s)) out.product='Cards';
+    else if(/expense|receipt|advance|petty|ocr|reimburs/.test(s)) out.product='Expense';
+    else if(/platform|dashboard|report|notification|revamp/.test(s)) out.product='Platform';
+  }
+  if(!stored?.roadmap){
+    if(/block/i.test(s)) out.roadmap='Blocked';
+    else if(/hold/i.test(s)) out.roadmap='On Hold';
+    else if(/ril|pine.?lab|solugenix|agx|sleep|au.bank/.test(s)) out.roadmap='Now';
+    else if(/sap|sage|webhook|iocl|goulip|ms.?365/.test(s)) out.roadmap='Next';
+  }
+  return out;
+}
+
+/* ── ENRICHMENT ── */
+function gE(k){try{return JSON.parse(localStorage.getItem('e_'+k)||'null');}catch{return null;}}
+function sE(k,f,v){const e=gE(k)||{};e[f]=v;localStorage.setItem('e_'+k,JSON.stringify(e));}
+
+/* ── PIPELINE ── */
+function stages(r){
+  const em=r.emKey,es=(r.emStatus||'').toLowerCase();
+  const prod=/production/i.test(es),qa=/qa|review|ready/i.test(es)||prod,done=/production|done|closed/i.test(es);
+  return[{l:'Idea',c:'done'},{l:'PRD',c:em?'done':'wait'},{l:'EM',c:em?(done?'done':'act'):(r.carStatus==='Delivery'?'gap':'wait')},{l:'QA',c:qa?(done?'done':'act'):'wait'},{l:'Prod',c:prod?'prod':'wait'}];
+}
+function emc(s){if(!s)return'#4B5563';if(/production/i.test(s))return'#4CAF7D';if(/in progress/i.test(s))return'#4B9FFF';if(/qa|review|ready/i.test(s))return'#F5A623';if(/done|closed/i.test(s))return'#4CAF7D';return'#8892A8';}
+
+/* ── CROSS MATCH ── */
+function buildRows(car,em){
+  const byLabel={},byTok=[];
+  for(const e of em){for(const l of(e.labels||[]))if(/^[A-Z]+-\d+$/.test(l)){if(!byLabel[l])byLabel[l]=[];byLabel[l].push(e);}byTok.push({key:e.key,status:e.status,tokens:tok(e.summary)});}
+  const cfg=getCfg()||{};
+  return car.map(c=>{
+    const en=gE(c.key),inf=infer(c.summary,en);
+    let emKey=null,emStatus=null,matchType=null;
+    if(byLabel[c.key]){emKey=byLabel[c.key][0].key;emStatus=byLabel[c.key][0].status;matchType='label';}
+    if(!emKey){let best=0,bi=-1;byTok.forEach((e,i)=>{const s=jac(tok(c.summary),e.tokens);if(s>best){best=s;bi=i;}});if(best>0.38){emKey=byTok[bi].key;emStatus=byTok[bi].status;matchType='~title';}}
+    const stage=emKey?(/production/i.test(emStatus||'')?'delivered':'in-engineering'):'car-only';
+    const base=(cfg.url||'https://enkash.atlassian.net')+'/browse/';
+    return{car:c.key,name:c.summary,carStatus:c.status||'unknown',emKey,emStatus,matchType,stage,inf,carUrl:base+c.key,emUrl:emKey?base+emKey:null};
+  });
+}
+
+/* ── RENDER ── */
+function renderAll(rows){
+  allRows=rows;
+  renderRmCards(rows);renderSumCards(rows);buildCustFilter(rows);renderTable();
+  const cfg=getCfg()||{};
+  document.getElementById('hsub').textContent=`Cards & Expense  ·  EM Engineering  ·  ${rows.length} ideas  ·  ${cfg.url||''}`;
+}
+function renderRmCards(rows){
+  const counts={};
+  for(const r of rows){const v=(gE(r.car)?.roadmap||r.inf.roadmap);counts[v]=(counts[v]||0)+1;}
+  const keys=RM_ORD.filter(k=>counts[k]).concat(Object.keys(counts).filter(k=>!RM_ORD.includes(k)));
+  document.getElementById('rm-row').innerHTML=keys.map(rm=>{
+    const m=RM[rm]||{c:'#6B7280',rgb:'107,114,128'};
+    const gap=rows.filter(r=>(gE(r.car)?.roadmap||r.inf.roadmap)===rm&&r.stage==='car-only').length;
+    return`<div class="rmc${activeRm===rm?' on':''}" style="--rc:${m.c};--rgb:${m.rgb}" onclick="setRm('${rm.replace(/'/g,"\\'")}')"><p class="rmc-n">${counts[rm]}</p><p class="rmc-l">${rm}</p>${gap?`<p class="rmc-g">${gap} gap${gap>1?'s':''}</p>`:''}</div>`;
+  }).join('');
+}
+function renderSumCards(rows){
+  const total=rows.length,inEng=rows.filter(r=>r.stage==='in-engineering').length;
+  const del=rows.filter(r=>r.stage==='delivered').length,gap=rows.filter(r=>r.stage==='car-only').length;
+  const custs=new Set(rows.map(r=>(gE(r.car)?.customer||r.inf.customer)).filter(c=>c&&c!=='Internal')).size;
+  const blocked=rows.filter(r=>(gE(r.car)?.roadmap||r.inf.roadmap)==='Blocked').length;
+  document.getElementById('sc-row').innerHTML=`
+    <div class="sc t"><p class="sc-l">Total ideas</p><p class="sc-v">${total}</p><p class="sc-s">pipeline</p></div>
+    <div class="sc b"><p class="sc-l">In engineering</p><p class="sc-v">${inEng}</p><p class="sc-s">EM open</p></div>
+    <div class="sc g"><p class="sc-l">Delivered</p><p class="sc-v">${del}</p><p class="sc-s">in production</p></div>
+    <div class="sc r"><p class="sc-l">No EM story</p><p class="sc-v">${gap}</p><p class="sc-s">gap</p></div>
+    <div class="sc a"><p class="sc-l">Customers</p><p class="sc-v">${custs}</p><p class="sc-s">tracked</p></div>
+    <div class="sc p"><p class="sc-l">Blocked</p><p class="sc-v">${blocked}</p><p class="sc-s">attention</p></div>`;
+}
+function setRm(v){activeRm=activeRm===v?'':v;document.getElementById('frm').value=activeRm;document.querySelectorAll('.rmc').forEach(el=>el.classList.toggle('on',el.querySelector('.rmc-l')?.textContent===activeRm));renderTable();}
+function syncRm(v){activeRm=v;document.querySelectorAll('.rmc').forEach(el=>el.classList.toggle('on',el.querySelector('.rmc-l')?.textContent===v));}
+function buildCustFilter(rows){
+  const vals=[...new Set(rows.map(r=>(gE(r.car)?.customer||r.inf.customer)).filter(Boolean))].sort();
+  const sel=document.getElementById('fcu'),cur=sel.value;
+  sel.innerHTML='<option value="">All</option>'+vals.map(v=>`<option${v===cur?' selected':''}>${v}</option>`).join('');
+}
+function renderTable(){
+  const q=(document.getElementById('fs').value||'').toLowerCase();
+  const frm=document.getElementById('frm').value,fpr=document.getElementById('fpr').value;
+  const fcu=document.getElementById('fcu').value,fst=document.getElementById('fst').value;
+  const rows=allRows.filter(r=>{
+    const en=gE(r.car)||{},inf=Object.assign({},r.inf,en);
+    if(gapOnly&&r.stage!=='car-only') return false;
+    if(q&&!((r.name||'').toLowerCase().includes(q)||(r.car||'').toLowerCase().includes(q)||(r.emKey||'').toLowerCase().includes(q))) return false;
+    if(frm&&inf.roadmap!==frm) return false;
+    if(fpr&&inf.product!==fpr) return false;
+    if(fcu&&inf.customer!==fcu) return false;
+    if(fst&&r.stage!==fst) return false;
+    return true;
+  });
+  document.getElementById('rcount').textContent=rows.length+' of '+allRows.length;
+  const tbody=document.getElementById('tbody');
+  if(!rows.length){tbody.innerHTML='<tr class="erow"><td colspan="7">No items match.</td></tr>';return;}
+  tbody.innerHTML=rows.map(r=>{
+    const en=gE(r.car)||{},inf=Object.assign({},r.inf,en);
+    const sg=stages(r);
+    const pipe=sg.map((s,i)=>`${i>0?'<div class="tline"></div>':''}<div class="ts"><div class="td ${s.c}"></div><span class="tl">${s.l}</span></div>`).join('');
+    const rmCls='rm-'+inf.roadmap.replace(/\s+/g,'').replace(/'/g,'');
+    const prCls='pb-'+inf.product.replace(/\s+/g,'').replace(/\//g,'');
+    const csB=['Delivery','Ongoing','In Sprint'].includes(r.carStatus)?'rm-Now':r.carStatus==='Done'?'rm-Released':r.carStatus==='Design'?'rm-Ongoing':'rm-Later';
+    const rmOpts=['Now','Next','In Sprint','Ongoing','Later','Blocked','On Hold','Released',"Won't do"].map(o=>`<option${inf.roadmap===o?' selected':''}>${o}</option>`).join('');
+    const prOpts=['Expense','Cards','Platform','Wallet','Vouchers','UPI On PPI','CoBranded'].map(o=>`<option${inf.product===o?' selected':''}>${o}</option>`).join('');
+    return`<tr class="${r.stage==='car-only'?'gap':''}">
+      <td><div class="iname" onclick="openL('${r.carUrl}')">${esc(r.name)}</div><div class="ikey">${r.car}</div></td>
+      <td><span class="badge ${rmCls}">${inf.roadmap}</span><br><select class="ie" style="margin-top:3px" onchange="sE('${r.car}','roadmap',this.value);renderAll(allRows)">${rmOpts}</select></td>
+      <td><span class="badge ${prCls}">${inf.product}</span><br><select class="ie" style="margin-top:3px" onchange="sE('${r.car}','product',this.value);renderAll(allRows)">${prOpts}</select></td>
+      <td><input class="it" value="${esc(inf.customer)}" placeholder="Customer" onchange="sE('${r.car}','customer',this.value);buildCustFilter(allRows)"/></td>
+      <td><div class="track">${pipe}</div></td>
+      <td><span class="badge ${csB}">${r.carStatus}</span></td>
+      <td>${r.emKey?`<div class="emk"><a href="${r.emUrl}" onclick="return openL('${r.emUrl}')">${r.emKey}</a></div><div class="ems" style="color:${emc(r.emStatus)}">${r.emStatus||'—'}</div><div class="mc">${r.matchType==='label'?'✓ label':'~ title'}</div>`:`<div class="noem">No EM story</div>`}</td>
+    </tr>`;
+  }).join('');
+}
+
+/* ── UTILS ── */
+function esc(s){return(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function openL(u){if(u)window.open(u,'_blank');return false;}
+function toggleGap(){gapOnly=!gapOnly;document.getElementById('gtog').classList.toggle('on',gapOnly);renderTable();}
+function setLive(ok,lbl){const d=document.getElementById('ldot'),l=document.getElementById('llbl');d.style.background=ok?'var(--teal)':'var(--amber)';d.style.boxShadow=ok?'0 0 5px var(--teal)':'0 0 5px var(--amber)';l.textContent=lbl;}
+function exportCSV(){
+  const h=['CAR key','Idea','Roadmap','Product','Customer','CAR status','Stage','EM key','EM status'];
+  const rows=allRows.map(r=>{const en=gE(r.car)||{};const inf=Object.assign({},r.inf,en);return[r.car,r.name,inf.roadmap,inf.product,inf.customer,r.carStatus,r.stage,r.emKey||'',r.emStatus||''];});
+  const csv=[h,...rows].map(row=>row.map(c=>'"'+String(c).replace(/"/g,'""')+'"').join(',')).join('\n');
+  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));
+  a.download='enkash-pipeline-'+new Date().toISOString().slice(0,10)+'.csv';a.click();
+}
+
+/* ── INIT ── */
+(function(){
+  const cfg=getCfg();
+  if(cfg&&cfg.email&&cfg.token){document.getElementById('dash').classList.add('show');loadAll();}
+  else{document.getElementById('setup').classList.add('show');}
+  setInterval(()=>{if(getCfg())loadAll();},5*60*1000);
+})();
+</script>
+</body>
+</html>
