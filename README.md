@@ -1,4 +1,4 @@
-# EnKash Product–Engineering Pipeline Dashboard
+# EnKash Product Engineering Pipeline Dashboard
 
 Live cross-board tracker linking the **Cards & Expense** product discovery board (CAR) to the **Enkash Expense** engineering board (EM).
 
